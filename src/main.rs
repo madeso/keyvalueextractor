@@ -1,3 +1,5 @@
+mod kve;
+
 fn main() {
-    println!("Hello, world!");
+    println!("It is {}!", kve::count_directory_seperators("He//llo/world!"));
 }
