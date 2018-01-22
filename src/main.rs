@@ -1,5 +1,6 @@
 mod kve;
 
 fn main() {
-    println!("It is {}!", kve::count_directory_seperators("He//llo/world!"));
+    let kv = kve::KeyValueExtractor::new("%album%/%artist%-%title%");
+    println!("It is {:?}!", kv);
 }
