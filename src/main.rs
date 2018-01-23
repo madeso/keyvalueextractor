@@ -1,6 +1,13 @@
 mod kve;
 
+use std::path::Path;
+
 fn main() {
-    let kv = kve::KeyValueExtractor::new("%album%/%artist%-%title%");
-    println!("It is {:?}!", kv);
+    match kve::KeyValueExtractor::new("%album%/%artist%-%title%") {
+        Err(err) => println!("Failed to parse: {:?}", err),
+        Ok(kv) => {
+            kv.extract(Path::new("./foo/bar.txt"));
+            println!("It is {:?}!", kv);
+        }
+    }
 }

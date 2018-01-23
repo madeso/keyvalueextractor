@@ -1,3 +1,5 @@
+use std::path::Path;
+
 fn count_directory_seperators(pattern: &str) -> u32
 {
     let mut count : u32 = 0;
@@ -48,6 +50,10 @@ impl KeyValueExtractor
     {
         self.matchers.push(Match{ is_text: true, data: String::from(t)});
         self.number_of_directory_seperators += count_directory_seperators(t);
+    }
+
+    pub fn extract(&self, path: &Path)
+    {
     }
 
     pub fn new(pattern: &str) -> Result<KeyValueExtractor, CompileError>
