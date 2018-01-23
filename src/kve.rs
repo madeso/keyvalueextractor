@@ -1,4 +1,6 @@
 use std::path::Path;
+use std::collections::HashMap;
+use std::collections::hash_map::Entry;
 
 fn count_directory_seperators(pattern: &str) -> u32
 {
@@ -20,10 +22,33 @@ struct Match
 }
 
 #[derive(Debug)]
-struct Complexity
+pub struct FoundMatch
 {
-    arguments : i32,
-    verifiers : i32,
+    message: Option<String>,
+    data: HashMap<String, String>,
+}
+
+impl FoundMatch
+{
+    fn set(&mut self, varname: &str, value: &str) -> bool
+    {
+        fn make_clean(val: &str) -> String
+        {
+            val.to_string().to_lowercase().replace("_", "").trim().trim_left_matches('0').to_string()
+        }
+
+        match self.data.entry(varname.to_string())
+        {
+            Entry::Occupied(current_value) => {
+                make_clean(current_value.get()) == make_clean(value)
+            }
+            Entry::Vacant(entry) => {
+                entry.insert(value.to_string());
+                true
+            }
+        }
+
+    }
 }
 
 #[derive(Debug)]
@@ -52,8 +77,30 @@ impl KeyValueExtractor
         self.number_of_directory_seperators += count_directory_seperators(t);
     }
 
-    pub fn extract(&self, path: &Path)
+    pub fn get_searchable_string(&self, path: &Path) -> Option<String>
     {
+        let mut s = path.file_stem()?.to_string_lossy().to_string();
+        let mut p = path;
+        for _ in 0..self.number_of_directory_seperators
+        {
+            p = p.parent()?;
+            s = p.file_stem()?.to_string_lossy().to_string() + "/" + &s;
+        }
+        Some(s)
+    }
+
+    pub fn extract(&self, path: &Path) -> FoundMatch
+    {
+        let mut m = FoundMatch { message: None, data: HashMap::new() };
+        return match self.get_searchable_string(path)
+        {
+            None => { m.message = Some(String::from("Path was invalid.")); m }
+            Some(x) => {
+                // todo: implement data extract function
+                m.set("da", &x);
+                m
+            }
+        }
     }
 
     pub fn new(pattern: &str) -> Result<KeyValueExtractor, CompileError>

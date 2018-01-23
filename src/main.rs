@@ -6,8 +6,9 @@ fn main() {
     match kve::KeyValueExtractor::new("%album%/%artist%-%title%") {
         Err(err) => println!("Failed to parse: {:?}", err),
         Ok(kv) => {
-            kv.extract(Path::new("./foo/bar.txt"));
-            println!("It is {:?}!", kv);
+            println!("Pattern is {:?}!", kv);
+            let extracted = kv.extract(Path::new("./data/foo/bar.txt"));
+            println!("Extracted is {:?}!", extracted);
         }
     }
 }
