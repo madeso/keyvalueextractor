@@ -30,6 +30,21 @@ pub struct FoundMatch
 
 impl FoundMatch
 {
+    fn err(&mut self, message: &str)
+    {
+        self.message = Some(String::from(message))
+    }
+    fn get(&self, varname: &str) -> Option<String>
+    {
+        if let Some(r) = self.data.get(varname)
+        {
+            Some(r.to_string())
+        }
+        else
+        {
+            None
+        }
+    }
     fn set(&mut self, varname: &str, value: &str) -> bool
     {
         fn make_clean(val: &str) -> String
@@ -47,7 +62,6 @@ impl FoundMatch
                 true
             }
         }
-
     }
 }
 
@@ -94,10 +108,63 @@ impl KeyValueExtractor
         let mut m = FoundMatch { message: None, data: HashMap::new() };
         return match self.get_searchable_string(path)
         {
-            None => { m.message = Some(String::from("Path was invalid.")); m }
-            Some(x) => {
+            None => { m.err("Path was invalid."); m }
+            Some(the_text) => {
+                let text: String = the_text;
                 // todo: implement data extract function
-                m.set("da", &x);
+                let mut start = 0;
+                let mut arg = "";
+                for matcher in self.matchers.iter()
+                {
+                    if matcher.is_text
+                    {
+                        // remove & for unhelpful compilation error
+                        let f = text[start..].find(&matcher.data);
+                        if f == None
+                        {
+                            // remove to_string for unhelpful compilation error
+                            let err = format!("Unable to find {} in {}", matcher.data, text[start..].to_string());
+                            m.err(&err);
+                            return m;
+                        }
+                        let end = f.unwrap();
+                        if arg != ""
+                        {
+                            // remove to_string for hard to debug compiler error
+                            let val = text[start..end].to_string();
+                            if !m.set(arg, &val)
+                            {
+                                let err = format!("Unable to apply {} to {}, already contains {:?}", val, arg, m.get(arg));
+                                m.err(&err);
+                                return m;
+                            }
+                            arg = ""
+                        }
+                        start = end + matcher.data.len();
+                    }
+                    else
+                    {
+                        // not text
+                        if arg != ""
+                        {
+                            // this should be caught when parsing
+                            m.err("argument specified twice..");
+                            return m;
+                        }
+                        arg = &matcher.data;
+                    }
+                }
+                if arg != ""
+                {
+                    // remove to_string for hard to debug compiler error
+                    let val = text[start..].to_string();
+                    if !m.set(arg, &val)
+                    {
+                        let err = format!("Unable to apply {} to {}, already contains {:?}", val, arg, m.get(arg));
+                        m.err(&err);
+                        return m;
+                    }
+                }
                 m
             }
         }
