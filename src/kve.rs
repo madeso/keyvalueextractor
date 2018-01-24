@@ -127,16 +127,11 @@ impl KeyValueExtractor
                             m.err(&err);
                             return m;
                         }
-                        let end = f.unwrap();
+                        // since we cant do find with start and end, move up end to match the lacking find function
+                        let end = f.unwrap() + start;
                         if arg != ""
                         {
                             // remove to_string for hard to debug compiler error
-                            if start >= end
-                            {
-                                let err = format!("String end found when trying to match {}", arg);
-                                m.err(&err);
-                                return m;
-                            }
                             let val = text[start..end].to_string();
                             if !m.set(arg, &val)
                             {
