@@ -131,6 +131,12 @@ impl KeyValueExtractor
                         if arg != ""
                         {
                             // remove to_string for hard to debug compiler error
+                            if start >= end
+                            {
+                                let err = format!("String end found when trying to match {}", arg);
+                                m.err(&err);
+                                return m;
+                            }
                             let val = text[start..end].to_string();
                             if !m.set(arg, &val)
                             {
@@ -140,7 +146,7 @@ impl KeyValueExtractor
                             }
                             arg = ""
                         }
-                        start = end + matcher.data.len();
+                        start = end + matcher.data.chars().count();
                     }
                     else
                     {
