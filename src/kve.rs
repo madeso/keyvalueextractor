@@ -172,39 +172,43 @@ impl KeyValueExtractor
     pub fn new(pattern: &str) -> Result<KeyValueExtractor, CompileError>
     {
         let mut p = KeyValueExtractor{number_of_directory_seperators: 0, nodes: vec![]};
-        let k = '%';
-        let mut special = false;
+        let argument_char = '%';
+        let mut inside_argument = false;
         let mut mem : String = "".to_string();
 
         for c in pattern.chars()
         {
-            if c == k
+            if c == argument_char
             {
-                let t = mem;
-                mem = "".to_string();
-                if special
+                if inside_argument
                 {
-                    if t == ""
+                    if mem == ""
                     {
-                        mem.push(k)
+                        // two %% means escape %
+                        mem.push(argument_char)
                     }
                     else
                     {
-                        p.add_argument(&t);
+                        p.add_argument(&mem);
+                        mem = "".to_string();
                     }
                 }
                 else
                 {
-                    if t == ""
+                    if mem == ""
                     {
+                        // this might happen between patterns
+                        // not sure how the pattern matching works then and what is extracted
+                        // need to define behaviour and add tests
                     }
                     else
                     {
-                        p.add_text(&t);
+                        p.add_text(&mem);
+                        mem = "".to_string();
                     }
                 }
 
-                special = !special;
+                inside_argument = !inside_argument;
             }
             else
             {
@@ -212,8 +216,9 @@ impl KeyValueExtractor
             }
         }
 
-        if special
+        if inside_argument
         {
+            // this means that a argument was started but did not end before the pattern had ended
             return Err(CompileError::Fail)
         }
         if mem != ""
