@@ -15,10 +15,10 @@ fn count_directory_seperators(pattern: &str) -> u32
 }
 
 #[derive(Debug)]
-struct Node
+enum Node
 {
-    is_text : bool,
-    data: String,
+    StaticText(String),
+    Argument(String),
 }
 
 #[derive(Debug)]
@@ -82,12 +82,12 @@ impl KeyValueExtractor
 {
     fn add_argument(&mut self, t: &str)
     {
-        self.matchers.push(Node{ is_text: false, data: String::from(t)});
+        self.matchers.push(Node::Argument(String::from(t)));
     }
 
     fn add_text(&mut self, t: &str)
     {
-        self.matchers.push(Node{ is_text: true, data: String::from(t)});
+        self.matchers.push(Node::StaticText(String::from(t)));
         self.number_of_directory_seperators += count_directory_seperators(t);
     }
 
@@ -110,48 +110,47 @@ impl KeyValueExtractor
         {
             None => { m.err("Path was invalid."); m }
             Some(text) => {
-                // todo: implement data extract function
                 let mut start = 0; // start position in search string
                 let mut key_name = ""; // the key name to set
                 for matcher in self.matchers.iter()
                 {
-                    if matcher.is_text
+                    match matcher
                     {
-                        // remove & for unhelpful compilation error
-                        let f = text[start..].find(&matcher.data);
-                        if f == None
+                        &Node::StaticText(ref data) =>
                         {
-                            // remove to_string for unhelpful compilation error
-                            let err = format!("Unable to find {} in {}", matcher.data, text[start..].to_string());
-                            m.err(&err);
-                            return m;
-                        }
-                        // since we cant do find with start and end, move up end to match the lacking find function
-                        let end = f.unwrap() + start;
-                        if key_name != ""
-                        {
-                            // remove to_string for hard to debug compiler error
-                            let val = text[start..end].to_string();
-                            if !m.set(key_name, &val)
+                            let f = text[start..].find(data);
+                            if f == None
                             {
-                                let err = format!("Unable to apply {} to {}, already contains {:?}", val, key_name, m.get(key_name));
+                                let err = format!("Unable to find {} in {}", data, text[start..].to_string());
                                 m.err(&err);
                                 return m;
                             }
-                            key_name = ""
+                            // since we cant do find with start and end, move up end to match the lacking find function
+                            let end = f.unwrap() + start;
+                            if key_name != ""
+                            {
+                                let val = text[start..end].to_string();
+                                if !m.set(key_name, &val)
+                                {
+                                    let err = format!("Unable to apply {} to {}, already contains {:?}", val, key_name, m.get(key_name));
+                                    m.err(&err);
+                                    return m;
+                                }
+                                key_name = ""
+                            }
+                            start = end + data.chars().count();
                         }
-                        start = end + matcher.data.chars().count();
-                    }
-                    else
-                    {
-                        // not text
-                        if key_name != ""
+                        &Node::Argument(ref data) =>
                         {
-                            // this should be caught when parsing
-                            m.err("argument specified twice..");
-                            return m;
+                            // not text
+                            if key_name != ""
+                            {
+                                // this should be caught when parsing
+                                m.err("argument specified twice..");
+                                return m;
+                            }
+                            key_name = &data;
                         }
-                        key_name = &matcher.data;
                     }
                 }
                 if key_name != ""
