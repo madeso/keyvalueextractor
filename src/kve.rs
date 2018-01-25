@@ -15,7 +15,7 @@ fn count_directory_seperators(pattern: &str) -> u32
 }
 
 #[derive(Debug)]
-struct Match
+struct Node
 {
     is_text : bool,
     data: String,
@@ -69,7 +69,7 @@ impl FoundMatch
 pub struct KeyValueExtractor
 {
     number_of_directory_seperators: u32,
-    matchers: Vec<Match>,
+    matchers: Vec<Node>,
 }
 
 #[derive(Debug)]
@@ -82,12 +82,12 @@ impl KeyValueExtractor
 {
     fn add_argument(&mut self, t: &str)
     {
-        self.matchers.push(Match{ is_text: false, data: String::from(t)});
+        self.matchers.push(Node{ is_text: false, data: String::from(t)});
     }
 
     fn add_text(&mut self, t: &str)
     {
-        self.matchers.push(Match{ is_text: true, data: String::from(t)});
+        self.matchers.push(Node{ is_text: true, data: String::from(t)});
         self.number_of_directory_seperators += count_directory_seperators(t);
     }
 
