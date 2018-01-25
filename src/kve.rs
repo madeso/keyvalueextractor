@@ -69,7 +69,7 @@ impl FoundMatch
 pub struct KeyValueExtractor
 {
     number_of_directory_seperators: u32,
-    matchers: Vec<Node>,
+    nodes: Vec<Node>,
 }
 
 #[derive(Debug)]
@@ -82,12 +82,12 @@ impl KeyValueExtractor
 {
     fn add_argument(&mut self, t: &str)
     {
-        self.matchers.push(Node::Argument(String::from(t)));
+        self.nodes.push(Node::Argument(String::from(t)));
     }
 
     fn add_text(&mut self, t: &str)
     {
-        self.matchers.push(Node::StaticText(String::from(t)));
+        self.nodes.push(Node::StaticText(String::from(t)));
         self.number_of_directory_seperators += count_directory_seperators(t);
     }
 
@@ -112,9 +112,9 @@ impl KeyValueExtractor
             Some(text) => {
                 let mut start = 0; // start position in search string
                 let mut key_name = ""; // the key name to set
-                for matcher in self.matchers.iter()
+                for node in self.nodes.iter()
                 {
-                    match matcher
+                    match node
                     {
                         &Node::StaticText(ref data) =>
                         {
@@ -171,7 +171,7 @@ impl KeyValueExtractor
 
     pub fn new(pattern: &str) -> Result<KeyValueExtractor, CompileError>
     {
-        let mut p = KeyValueExtractor{number_of_directory_seperators: 0, matchers: vec![]};
+        let mut p = KeyValueExtractor{number_of_directory_seperators: 0, nodes: vec![]};
         let k = '%';
         let mut special = false;
         let mut mem : String = "".to_string();
