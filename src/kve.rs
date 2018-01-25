@@ -109,11 +109,10 @@ impl KeyValueExtractor
         return match self.get_searchable_string(path)
         {
             None => { m.err("Path was invalid."); m }
-            Some(the_text) => {
-                let text: String = the_text;
+            Some(text) => {
                 // todo: implement data extract function
-                let mut start = 0;
-                let mut arg = "";
+                let mut start = 0; // start position in search string
+                let mut key_name = ""; // the key name to set
                 for matcher in self.matchers.iter()
                 {
                     if matcher.is_text
@@ -129,39 +128,39 @@ impl KeyValueExtractor
                         }
                         // since we cant do find with start and end, move up end to match the lacking find function
                         let end = f.unwrap() + start;
-                        if arg != ""
+                        if key_name != ""
                         {
                             // remove to_string for hard to debug compiler error
                             let val = text[start..end].to_string();
-                            if !m.set(arg, &val)
+                            if !m.set(key_name, &val)
                             {
-                                let err = format!("Unable to apply {} to {}, already contains {:?}", val, arg, m.get(arg));
+                                let err = format!("Unable to apply {} to {}, already contains {:?}", val, key_name, m.get(key_name));
                                 m.err(&err);
                                 return m;
                             }
-                            arg = ""
+                            key_name = ""
                         }
                         start = end + matcher.data.chars().count();
                     }
                     else
                     {
                         // not text
-                        if arg != ""
+                        if key_name != ""
                         {
                             // this should be caught when parsing
                             m.err("argument specified twice..");
                             return m;
                         }
-                        arg = &matcher.data;
+                        key_name = &matcher.data;
                     }
                 }
-                if arg != ""
+                if key_name != ""
                 {
                     // remove to_string for hard to debug compiler error
                     let val = text[start..].to_string();
-                    if !m.set(arg, &val)
+                    if !m.set(key_name, &val)
                     {
-                        let err = format!("Unable to apply {} to {}, already contains {:?}", val, arg, m.get(arg));
+                        let err = format!("Unable to apply {} to {}, already contains {:?}", val, key_name, m.get(key_name));
                         m.err(&err);
                         return m;
                     }
