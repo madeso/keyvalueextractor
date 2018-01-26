@@ -1,8 +1,8 @@
-mod kve;
+extern crate keyvalueextractor;
 
 use std::path::Path;
 
-fn print(t: &kve::KeyValueExtractor, path: &str)
+fn print(t: &keyvalueextractor::KeyValueExtractor, path: &str)
 {
     let extracted = t.extract(Path::new(path));
     println!("{}", path);
@@ -11,7 +11,7 @@ fn print(t: &kve::KeyValueExtractor, path: &str)
 }
 
 fn main() {
-    match kve::KeyValueExtractor::new("%album%/%artist%-%title%") {
+    match keyvalueextractor::KeyValueExtractor::new("%album%/%artist%-%title%") {
         Err(err) => println!("Failed to parse: {:?}", err),
         Ok(t) => {
             println!("//////////////////////////////////");

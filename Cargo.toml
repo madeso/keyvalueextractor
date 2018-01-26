@@ -1,6 +1,16 @@
 [package]
-name = "keyvaluextractor"
+name = "keyvalueextractor"
 version = "0.1.0"
 authors = ["Gustav <sir.gustav.the.coder@gmail.com>"]
 
 [dependencies]
+
+[lib]
+name = "keyvalueextractor"
+path = "src/kve.rs"
+doc = true
+
+[[bin]]
+name = "main"
+path = "src/main.rs"
+doc = false
